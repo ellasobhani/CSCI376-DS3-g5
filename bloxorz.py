@@ -30,6 +30,9 @@ def recognize_pointLeft(hand_landmarks):
     pinky_mcp = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP] 
     middle_mcp = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP]
 
+    wrist = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST]
+
+
     # pinky base should be lower than index base
     pinky_base_lower = pinky_tip.y > index_tip.y
 
@@ -37,17 +40,24 @@ def recognize_pointLeft(hand_landmarks):
     is_all_tips_lower = middle_tip.x > middle_pip.x and ring_tip.x > ring_pip.x and pinky_tip.x > pinky_pip.x
 
     # pointing left
-    is_pointing_left = index_tip.x < index_mcp.x
+    is_pointing_left = index_tip.x < index_pip.x < index_mcp.x
 
     is_above_threshold = abs(index_tip.x - index_pip.x) - abs(index_mcp.x - index_pip.x) > -0.005
 
     # print(f"STRAINT INDEX { abs(index_tip.x - index_pip.x) - abs(index_mcp.x - index_pip.x)}")
 
     # knuckles vertical
-    index_pinky_knuckle_x_dist = abs(middle_mcp.x - pinky_mcp.x)
-    knuckles_vertical= index_pinky_knuckle_x_dist < 0.1
+    index_pinky_knuckle_x_dist = abs(middle_mcp.y - pinky_mcp.y)
+    knuckles_vertical = index_pinky_knuckle_x_dist < 0.5
 
-    if is_pointing_left and pinky_base_lower and is_all_tips_lower and knuckles_vertical and is_above_threshold:
+    # pinky right of center
+    pinky_left_of_wrist = pinky_tip.x < wrist.x
+    
+    print("LEFT POINT CALLED! ", is_pointing_left, index_tip.x, index_mcp.x, index_pip.x)
+    
+    # if is_pointing_left and pinky_base_lower and is_above_threshold and knuckles_vertical and pinky_left_of_wrist:
+
+    if is_pointing_left and pinky_base_lower and is_above_threshold and pinky_left_of_wrist and knuckles_vertical:
         return "Point Left"
     else:
         return None
@@ -73,7 +83,7 @@ def recognize_pointRight(hand_landmarks):
     is_all_tips_lower = index_tip.y > index_pip.y and middle_tip.y > middle_pip.y and ring_tip.y > ring_pip.y and pinky_tip.y > pinky_pip.y
 
     index_pinky_knuckle_y_dist = abs(thumb_tip.y - index_tip.y)
-    knuckles_horizontal = index_pinky_knuckle_y_dist < 0.15
+    knuckles_horizontal = index_pinky_knuckle_y_dist < 0.1
 
     # x of tip of thumb > x of thumb cmc and mcp and is_all_tips_lower = True and knuckles are horizontal
     if thumb_tip.x > thumb_cmc.x and is_all_tips_lower and knuckles_horizontal:
@@ -176,8 +186,6 @@ def main():
             image_rgb.flags.writeable = True
             image = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
 
-            
-
             if result.gestures:
                 recognized_gesture = result.gestures[0][0].category_name
                 confidence = result.gestures[0][0].score
@@ -188,12 +196,15 @@ def main():
                     if recognized_gesture == "Thumb_Up":
                         pyautogui.press('up')
                         is_prev_rest = False
-                        pass
+
                     elif recognized_gesture == "Thumb_Down":
                         pyautogui.press('down')
                         is_prev_rest = False
-                        pass
-                
+
+                    elif recognized_gesture == "Victory":
+                        pyautogui.press('r')
+                        is_prev_rest = False
+
                 if recognized_gesture == "Open_Palm":
                     is_prev_rest = True
 
@@ -223,6 +234,12 @@ def main():
                             if gesture == "Point Left":
                                 pyautogui.press('left')
                                 is_prev_rest = False
+
+                                cv2.putText(image, gesture, 
+                                (int(hand_landmarks.landmark[0].x * image.shape[1]), 
+                                 int(hand_landmarks.landmark[0].y * image.shape[0]) - 20),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+
                                 pass
 
                     # Display gesture near hand location
