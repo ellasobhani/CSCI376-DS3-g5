@@ -5,7 +5,7 @@ import mediapipe as mp
 from mediapipe.tasks.python.vision import GestureRecognizer, GestureRecognizerOptions
 from mediapipe.tasks.python import BaseOptions
 from mediapipe.framework.formats import landmark_pb2
-import bloxorz
+import braininess
 
 import pyautogui
 

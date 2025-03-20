@@ -4,6 +4,8 @@ import math
 from mediapipe.tasks.python.vision import GestureRecognizer, GestureRecognizerOptions
 from mediapipe.tasks.python import BaseOptions
 import pyautogui
+import webbrowser
+
 
 # Initialize Mediapipe Hands
 mp_drawing = mp.solutions.drawing_utils
@@ -191,6 +193,8 @@ def main():
                 confidence = result.gestures[0][0].score
                 
                 # Example of pressing keys with pyautogui based on recognized gesture
+                if recognized_gesture == "Pointing_Up":
+                    webbrowser.open('https://www.newgrounds.com/portal/view/957885', new=2)
 
                 if is_prev_rest:
                     if recognized_gesture == "Thumb_Up":
